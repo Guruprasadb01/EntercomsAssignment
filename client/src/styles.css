@@ -1,0 +1,27 @@
+/* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+
+
+
+body{
+    background: #4c4c4c;
+    overflow-x: hidden;
+}
+
+.highcharts-background{
+    fill: #4c4c4c;
+}
+
+tspan, text{
+    color: white !important;
+    fill:white !important;
+}
+
+#backlogchart rect{
+	stroke: #666666;
+}
+
+#receivedpiechart path{
+    stroke: #666666;
+}

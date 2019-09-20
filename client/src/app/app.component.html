@@ -1,0 +1,243 @@
+<mat-toolbar color="primary">
+  <mat-toolbar-row>
+    <mat-form-field class="currency">
+      <mat-select [(value)]="selectedUnit">
+        <mat-option *ngFor="let currency of unitList" [value]="currency.symbol">
+          {{currency.symbol}}
+        </mat-option>
+      </mat-select>
+      <button mat-button>Units</button>
+    </mat-form-field>
+    <div class="left-toolbar-container">
+      <button mat-raised-button (click)="reset()">Reset</button>
+    </div>
+  </mat-toolbar-row>
+</mat-toolbar>
+<mat-card class="main-container">
+
+  <mat-card class="flex-layout zero-padding-top" [class.colapse-ship-detail]="ismaximizeOrderTbl">
+
+    <mat-card class="card-left">
+      <mat-card class="title">
+        Ready To Ship
+      </mat-card>
+
+      <div class="card-left-detail">
+
+        <div class="label">
+          <div>Potential Revenue</div>
+          <div>Total Lines</div>
+          <div>Total Units</div>
+        </div>
+        <div>
+          <div>: {{readyShipPotRev |currency:selectedUnit}}</div>
+          <div>: {{totalLines}}</div>
+          <div>: {{totalUnits}}</div>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="card-right">
+      <mat-card class="chart-filter">
+        <a mat-button (click)="updateChart('all')">All </a>
+        <a mat-button (click)="updateChart('top')">Top Customer </a>
+        <a mat-button (click)="updateChart('willcall')">Will Call </a>
+        <a mat-button (click)="updateChart('hold')">Hold</a>
+      </mat-card>
+      <highcharts-chart *ngIf="isVisibleChart" id="backlogchart" [Highcharts]="Highcharts"
+        [options]="backlogChartOptions" style="width: 100%; height: 90%; display: block;"></highcharts-chart>
+    </mat-card>
+  </mat-card>
+  <mat-card class="card-table" [class.enlarge-ordr-tbl]="ismaximizeOrderTbl">
+    <mat-card class="card-table-option">
+      <button mat-button (click)="maxMinOrderTbl()"> {{ismaximizeOrderTbl ?'Minimize':'Maximize'}}</button>
+      <button mat-button (click)="download('readyship')">Download</button>
+    </mat-card>
+    <table mat-table [dataSource]="ordersdataSource" class="mat-elevation-z8">
+      <!-- order no Column -->
+      <ng-container matColumnDef="orderNo">
+        <th mat-header-cell *matHeaderCellDef> Order No </th>
+        <td mat-cell *matCellDef="let element"> {{element.orderNo}} </td>
+      </ng-container>
+
+      <!-- customer Column -->
+      <ng-container matColumnDef="customer">
+        <th mat-header-cell *matHeaderCellDef> Customer </th>
+        <td mat-cell *matCellDef="let element"> {{element.customer}} </td>
+      </ng-container>
+
+      <!-- items Column -->
+      <ng-container matColumnDef="items">
+        <th mat-header-cell *matHeaderCellDef> Items </th>
+        <td mat-cell *matCellDef="let element"> {{element.items}} </td>
+      </ng-container>
+
+      <!-- orderDate Column -->
+      <ng-container matColumnDef="orderDate">
+        <th mat-header-cell *matHeaderCellDef> Order Date </th>
+        <td mat-cell *matCellDef="let element"> {{element.orderDate}} </td>
+      </ng-container>
+
+      <!-- quentity Column -->
+      <ng-container matColumnDef="quentity">
+        <th mat-header-cell *matHeaderCellDef> Quentity </th>
+        <td mat-cell *matCellDef="let element"> {{element.quentity}} </td>
+      </ng-container>
+
+      <!-- orderCost Column -->
+      <ng-container matColumnDef="orderCost">
+        <th mat-header-cell *matHeaderCellDef> Order Cost </th>
+        <td mat-cell *matCellDef="let element"> {{element.orderCost | currency: selectedUnit}} </td>
+      </ng-container>
+      <!-- ohQty Column -->
+      <ng-container matColumnDef="ohQty">
+        <th mat-header-cell *matHeaderCellDef> oh Qty </th>
+        <td mat-cell *matCellDef="let element"> {{element.ohQty}} </td>
+      </ng-container>
+      <!-- poArrivals Column -->
+      <ng-container matColumnDef="poArrivals">
+        <th mat-header-cell *matHeaderCellDef> po Arrivals </th>
+        <td mat-cell *matCellDef="let element"> {{element.poArrivals}} </td>
+      </ng-container>
+      <!-- poAsHarizan Column -->
+      <ng-container matColumnDef="poAsHarizan">
+        <th mat-header-cell *matHeaderCellDef> po o/s Harizan </th>
+        <td mat-cell *matCellDef="let element"> {{element.poAsHarizan}} </td>
+      </ng-container>
+
+      <!-- actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef> Actions </th>
+        <td mat-cell *matCellDef="let element">
+
+          <div *ngIf="element.actions.hold" class="action action-hold"
+            [style.width]="calWidth(element.actions.hold,element.items)">{{element.actions.hold}}</div>
+          <div *ngIf="element.actions.clear" class="action action-clear"
+            [style.width]="calWidth(element.actions.clear,element.items)">{{element.actions.clear}}</div>
+          <div *ngIf="element.actions.dock" class="action action-dock"
+            [style.width]="calWidth(element.actions.dock,element.items)">{{element.actions.dock}}</div>
+          <div *ngIf="element.actions.inspection" class="action action-inspection"
+            [style.width]="calWidth(element.actions.inspection,element.items)">{{element.actions.inspection}}</div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </mat-card>
+  <div class="side-panel receivable-panel" (click)="open()">Receivible</div>
+</mat-card>
+
+<div class="sidepanel" [class.open-side-panel]="isOpenPanel">
+  <mat-card class="main-container zero-padding-top">
+    <mat-card class="flex-layout zero-padding-top" [class.colapse-ship-detail]="ismaximizeReceiveTbl">
+      <mat-card class="card-left">
+        <mat-card class="title">
+          Receiving
+        </mat-card>
+
+        <div class="card-left-detail">
+          <div class="label">
+            <div>Potential Revenue</div>
+            <div>Total Orders</div>
+            <div>Total Units</div>
+          </div>
+          <div>
+            <div>: {{recPotRev |currency:selectedUnit}}</div>
+            <div>: {{totalOrders}}</div>
+            <div>: {{recTotalUnits}}</div>
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="card-right">
+        <div>
+          <highcharts-chart id="receivedpiechart" [Highcharts]="Highcharts" [options]="receivedChartOption"
+            style="width: 400px; height: 100%; display: block;"></highcharts-chart>
+        </div>
+        <div>
+          <highcharts-chart [Highcharts]="Highcharts" id="duenext4week" [options]="dueNext4WeekChartOption"
+            style="width: 400px; height: 100%; display: block;"></highcharts-chart>
+        </div>
+
+      </mat-card>
+    </mat-card>
+    <mat-card class="card-table" [class.enlarge-ordr-tbl]="ismaximizeReceiveTbl">
+      <mat-card class="card-table-option">
+        <button mat-button (click)="maxMinReceivedTbl()"> {{ismaximizeReceiveTbl ?'Minimize':'Maximize'}}</button>
+        <button mat-button (click)="download('receivings')">Download</button>
+      </mat-card>
+      <table mat-table [dataSource]="receivingdataSource" class="mat-elevation-z8">
+        <!-- order no Column -->
+        <ng-container matColumnDef="orderNo">
+          <th mat-header-cell *matHeaderCellDef> Order No </th>
+          <td mat-cell *matCellDef="let element"> {{element.orderNo}} </td>
+        </ng-container>
+
+        <!-- customer Column -->
+        <ng-container matColumnDef="customer">
+          <th mat-header-cell *matHeaderCellDef> Customer </th>
+          <td mat-cell *matCellDef="let element"> {{element.customer}} </td>
+        </ng-container>
+
+        <!-- items Column -->
+        <ng-container matColumnDef="items">
+          <th mat-header-cell *matHeaderCellDef> Items </th>
+          <td mat-cell *matCellDef="let element"> {{element.items}} </td>
+        </ng-container>
+
+        <!-- orderDate Column -->
+        <ng-container matColumnDef="orderDate">
+          <th mat-header-cell *matHeaderCellDef> Order Date </th>
+          <td mat-cell *matCellDef="let element"> {{element.orderDate}} </td>
+        </ng-container>
+
+        <!-- quentity Column -->
+        <ng-container matColumnDef="quentity">
+          <th mat-header-cell *matHeaderCellDef> Quentity </th>
+          <td mat-cell *matCellDef="let element"> {{element.quentity}} </td>
+        </ng-container>
+
+        <!-- orderCost Column -->
+        <ng-container matColumnDef="orderCost">
+          <th mat-header-cell *matHeaderCellDef> Order Cost </th>
+          <td mat-cell *matCellDef="let element"> {{element.orderCost | currency: selectedUnit}} </td>
+        </ng-container>
+        <!-- ohQty Column -->
+        <ng-container matColumnDef="ohQty">
+          <th mat-header-cell *matHeaderCellDef> oh Qty </th>
+          <td mat-cell *matCellDef="let element"> {{element.ohQty}} </td>
+        </ng-container>
+        <!-- poArrivals Column -->
+        <ng-container matColumnDef="poArrivals">
+          <th mat-header-cell *matHeaderCellDef> po Arrivals </th>
+          <td mat-cell *matCellDef="let element"> {{element.poArrivals}} </td>
+        </ng-container>
+        <!-- poAsHarizan Column -->
+        <ng-container matColumnDef="poAsHarizan">
+          <th mat-header-cell *matHeaderCellDef> po o/s Harizan </th>
+          <td mat-cell *matCellDef="let element"> {{element.poAsHarizan}} </td>
+        </ng-container>
+
+        <!-- actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef> Actions </th>
+          <td mat-cell *matCellDef="let element">
+            <div *ngIf="element.actions.hold" class="action action-hold"
+              [style.width]="calWidth(element.actions.hold,element.items)">{{element.actions.hold}}</div>
+            <div *ngIf="element.actions.clear" class="action action-clear"
+              [style.width]="calWidth(element.actions.clear,element.items)">{{element.actions.clear}}</div>
+            <div *ngIf="element.actions.dock" class="action action-dock"
+              [style.width]="calWidth(element.actions.dock,element.items)">{{element.actions.dock}}</div>
+            <div *ngIf="element.actions.inspection" class="action action-inspection"
+              [style.width]="calWidth(element.actions.inspection,element.items)">{{element.actions.inspection}}</div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </mat-card>
+    <div class="side-panel readytoship-panel" (click)="close()"> Ready To Ship</div>
+  </mat-card>
+</div>
